@@ -1,4 +1,5 @@
 # 1. Identificação do Projeto
+*Prints dos testes vai estar na /Prints*
 
 **Título:** API Biblioteca - AleTavares
 
