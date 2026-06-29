@@ -1,0 +1,15 @@
+# Cópia local de conveniência para desenvolvimento (NUNCA COMITAR).
+# Uso: cp docker-compose.override.yml.example docker-compose.override.yml
+#
+# O Docker Compose carrega esse arquivo automaticamente (se existir) por
+# cima do docker-compose.yml principal, sem precisar editar o arquivo que
+# vai pra entrega. Isso permite expor as portas do banco/cache SÓ na sua
+# máquina, sem comprometer a PoC de segurança (banco inacessível de fora)
+# que o arquivo de entrega precisa demonstrar.
+services:
+  db:
+    ports:
+      - "5432:5432"
+  cache:
+    ports:
+      - "6379:6379"

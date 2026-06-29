@@ -1,0 +1,83 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: biblioteca-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # SEM "ports" de propósito: o banco precisa ficar inacessível direto
+    # pelo host/internet (PoC de segurança exigida no guia de infraestrutura).
+    # Pra migrations, use sempre o serviço "cli" (mesma rede Docker que o "db").
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  # Camada de cache (Redis) - usada pelo back-end pra cachear consultas
+  cache:
+    image: redis:7-alpine
+    container_name: biblioteca-cache
+    restart: unless-stopped
+    # SEM "ports" - mesmo motivo do "db": só os containers da rede
+    # "backend" precisam falar com o cache.
+    networks:
+      - backend
+
+  # Servidor Node.js: SEM "ports" -> não acessível direto pelo host.
+  web:
+    build: .
+    container_name: biblioteca-web
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"
+    networks:
+      - backend
+      - frontend
+
+  # Único container com porta publicada pro host
+  nginx:
+    image: nginx:alpine
+    container_name: biblioteca-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+    networks:
+      - frontend
+
+  # CLI (migrations etc). Não inicia com "up" normal (profile "tools").
+  # Uso: docker compose run --rm cli migrate
+  cli:
+    build: .
+    container_name: biblioteca-cli
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["tools"]
+    entrypoint: ["node", "command.js"]
+    networks:
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  db_data:

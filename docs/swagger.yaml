@@ -1,0 +1,352 @@
+openapi: 3.0.0
+info:
+  title: API Biblioteca
+  description: >
+    API REST para gerenciamento de uma biblioteca (livros, autores,
+    categorias, usuários e empréstimos).
+  version: 1.0.0
+servers:
+  - url: /
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UsuarioInput:
+      type: object
+      required: [nome, email, senha]
+      properties:
+        nome: { type: string }
+        email: { type: string }
+        senha: { type: string }
+    Autor:
+      type: object
+      properties:
+        nome: { type: string }
+        nacionalidade: { type: string }
+    Categoria:
+      type: object
+      properties:
+        nome: { type: string }
+    Livro:
+      type: object
+      properties:
+        titulo: { type: string }
+        ano_publicacao: { type: integer }
+        autor_id: { type: integer }
+    Emprestimo:
+      type: object
+      properties:
+        livro_id: { type: integer }
+        usuario_id: { type: integer }
+        data_emprestimo: { type: string, format: date }
+        data_devolucao_prevista: { type: string, format: date }
+        devolvido: { type: boolean }
+
+paths:
+  /login:
+    post:
+      summary: Autentica um usuário e retorna um token JWT
+      description: >
+        Use as credenciais do usuário criado pelo seed (node command.js seed)
+        para testar: admin@biblioteca.com / 123456
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, senha]
+              properties:
+                email: { type: string, example: admin@biblioteca.com }
+                senha: { type: string, example: '123456' }
+      responses:
+        '200': { description: Login realizado com sucesso (retorna o token) }
+        '401': { description: Credenciais inválidas }
+
+  /usuarios:
+    get:
+      summary: Lista usuários
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Lista de usuários }
+    post:
+      summary: Cria um usuário
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UsuarioInput' }
+      responses:
+        '201': { description: Usuário criado }
+
+  /usuarios/{id}:
+    get:
+      summary: Busca um usuário por id
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Usuário encontrado }
+        '404': { description: Usuário não encontrado }
+    put:
+      summary: Atualiza um usuário
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UsuarioInput' }
+      responses:
+        '200': { description: Usuário atualizado }
+    delete:
+      summary: Remove um usuário
+      tags: [Usuarios]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Usuário removido }
+
+  /autores:
+    get:
+      summary: Lista autores
+      tags: [Autores]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Lista de autores }
+    post:
+      summary: Cria um autor
+      tags: [Autores]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Autor' }
+      responses:
+        '201': { description: Autor criado }
+
+  /autores/{id}:
+    get:
+      summary: Busca um autor por id
+      tags: [Autores]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Autor encontrado }
+        '404': { description: Autor não encontrado }
+    put:
+      summary: Atualiza um autor
+      tags: [Autores]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Autor' }
+      responses:
+        '200': { description: Autor atualizado }
+    delete:
+      summary: Remove um autor
+      tags: [Autores]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Autor removido }
+
+  /categorias:
+    get:
+      summary: Lista categorias
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Lista de categorias }
+    post:
+      summary: Cria uma categoria
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Categoria' }
+      responses:
+        '201': { description: Categoria criada }
+
+  /categorias/{id}:
+    get:
+      summary: Busca uma categoria por id
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Categoria encontrada }
+        '404': { description: Categoria não encontrada }
+    put:
+      summary: Atualiza uma categoria
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Categoria' }
+      responses:
+        '200': { description: Categoria atualizada }
+    delete:
+      summary: Remove uma categoria
+      tags: [Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Categoria removida }
+
+  /livros:
+    get:
+      summary: Lista livros (com autor e categorias)
+      tags: [Livros]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Lista de livros }
+    post:
+      summary: Cria um livro
+      tags: [Livros]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Livro' }
+      responses:
+        '201': { description: Livro criado }
+
+  /livros/{id}:
+    get:
+      summary: Busca um livro por id
+      tags: [Livros]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Livro encontrado }
+        '404': { description: Livro não encontrado }
+    put:
+      summary: Atualiza um livro
+      tags: [Livros]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Livro' }
+      responses:
+        '200': { description: Livro atualizado }
+    delete:
+      summary: Remove um livro
+      tags: [Livros]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Livro removido }
+
+  /livros/{id}/categorias:
+    get:
+      summary: Lista as categorias associadas a um livro (tabela pivô)
+      tags: [Livros - Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Lista de categorias do livro }
+    post:
+      summary: Associa uma categoria a um livro (tabela pivô)
+      tags: [Livros - Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categoria_id]
+              properties:
+                categoria_id: { type: integer }
+      responses:
+        '201': { description: Relação criada }
+
+  /livros/{id}/categorias/{categoriaId}:
+    delete:
+      summary: Remove a associação entre um livro e uma categoria
+      tags: [Livros - Categorias]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: categoriaId, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Relação removida }
+
+  /emprestimos:
+    get:
+      summary: Lista empréstimos
+      tags: [Emprestimos]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Lista de empréstimos }
+    post:
+      summary: Cria um empréstimo
+      tags: [Emprestimos]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Emprestimo' }
+      responses:
+        '201': { description: Empréstimo criado }
+
+  /emprestimos/{id}:
+    get:
+      summary: Busca um empréstimo por id
+      tags: [Emprestimos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Empréstimo encontrado }
+        '404': { description: Empréstimo não encontrado }
+    put:
+      summary: Atualiza um empréstimo
+      tags: [Emprestimos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Emprestimo' }
+      responses:
+        '200': { description: Empréstimo atualizado }
+    delete:
+      summary: Remove um empréstimo
+      tags: [Emprestimos]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Empréstimo removido }
